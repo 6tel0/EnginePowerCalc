@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Engine Power Calculator</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: #000;
+    color: #fff;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+  body::before, body::after {
+    content: '';
+    position: fixed;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    filter: blur(130px);
+    z-index: 0;
+    pointer-events: none;
+  }
+  body::before { background: rgba(40, 110, 230, 0.25); top: -120px; left: -120px; }
+  body::after  { background: rgba(40, 110, 230, 0.22); bottom: -120px; right: -120px; }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 24px 120px;
+  }
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 24px;
+  }
+  h1 { font-size: 2rem; color: #fff; }
+  p.sub { color: #aaa; margin-top: 4px; font-size: 0.95rem; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+  .card {
+    background: #0a0a0a;
+    border: 1px solid #1c1c1c;
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 9px 8px; text-align: left; }
+  th {
+    color: #fff;
+    font-weight: 600;
+    border-bottom: 1px solid #222;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+  }
+  td { border-bottom: 1px solid #141414; }
+  input[type="number"] {
+    width: 100%;
+    background: #000;
+    border: 1px solid #222;
+    color: #fff;
+    padding: 7px 9px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border 0.2s;
+  }
+  input[type="number"]:focus { border-color: #fff; }
+  .readout, .muted { color: #fff; font-variant-numeric: tabular-nums; }
+  .muted { color: #777; }
+
+  button {
+    background: #000;
+    border: 1px solid #2a2a2a;
+    color: #fff;
+    padding: 9px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.88rem;
+    transition: all 0.15s;
+    margin-right: 6px;
+    margin-top: 12px;
+  }
+  button:hover { border-color: #fff; }
+  button.primary { background: #fff; color: #000; border-color: #fff; }
+  button.primary:hover { opacity: 0.85; }
+  button.danger:hover { border-color: #ff5454; color: #ff5454; }
+
+  .chart-card { display: flex; flex-direction: column; }
+  .chart-wrap { flex: 1; min-height: 480px; position: relative; }
+
+  /* Tutorial modal */
+  .modal {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 100;
+    overflow-y: auto;
+    padding: 40px 20px;
+  }
+  .modal.open { display: block; }
+  .modal-inner {
+    max-width: 900px; margin: 0 auto;
+    background: #0a0a0a;
+    border: 1px solid #222;
+    border-radius: 14px;
+    padding: 28px;
+  }
+  .modal h2 { color: #fff; margin-bottom: 6px; }
+  .modal h3 {
+    color: #fff; margin-top: 28px; margin-bottom: 10px;
+    border-bottom: 1px solid #222; padding-bottom: 6px;
+  }
+  .modal p { color: #bbb; line-height: 1.6; margin-bottom: 10px; }
+  .modal img {
+    width: 100%; height: auto; border-radius: 10px;
+    margin: 12px 0; border: 1px solid #222;
+  }
+  .close-x {
+    float: right; cursor: pointer; color: #888;
+    font-size: 1.4rem; line-height: 1;
+  }
+  .close-x:hover { color: #fff; }
+
+  footer {
+    position: relative; z-index: 1;
+    text-align: center;
+    padding: 30px 20px 40px;
+    border-top: 1px solid #161616;
+    color: #888; font-size: 0.9rem;
+  }
+  footer a { color: #fff; text-decoration: none; border-bottom: 1px solid #444; }
+  footer a:hover { border-color: #fff; }
+  footer .made { margin-top: 8px; color: #666; font-size: 0.78rem; letter-spacing: 1.5px; }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>Plane Crazy Engine Power Calculator</h1>
+        <p class="sub">Enter Speed & Torque — RPM and Borsepower auto-calculate.</p>
+      </div>
+      <button class="primary" onclick="openTutorial()">📖 How to find Torque & RPM</button>
+    </div>
+
+    <div class="layout">
+      <div class="card">
+        <table id="dataTable">
+          <thead>
+            <tr>
+              <th>#</th><th>Speed</th><th>Torque</th><th>RPM</th><th>BHP</th><th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <button onclick="addRow()">+ Add Row</button>
+        <button class="primary" onclick="renderChart()">Generate Chart</button>
+        <button class="danger" onclick="clearAll()">Clear All</button>
+      </div>
+
+      <div class="card chart-card">
+        <div class="chart-wrap"><canvas id="powerChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tutorial Modal -->
+  <div class="modal" id="tutorialModal" onclick="if(event.target===this)closeTutorial()">
+    <div class="modal-inner">
+      <span class="close-x" onclick="closeTutorial()">✕</span>
+      <h2>How to find your engine's Torque & RPM</h2>
+      <p>Follow this guide step-by-step. Use the values you find here in the calculator.</p>
+
+      <h3>Step 1 — Finding Torque</h3>
+      <p>Build the test setup shown below. Start with 5 torque, then follow the flowchart to dial it in (±0.09 precision). Read the spawning procedure, testing flowchart, and the notes carefully.</p>
+      <img src="tutorial-1.png" alt="Torque testing setup, spawning procedure, flowchart, and notes" />
+
+      <h3>Step 2 — Finding Speed (for RPM)</h3>
+      <p>Build this setup to measure Speed. Once you have your Speed value, RPM is automatically calculated using:</p>
+      <p style="background:#000;border:1px solid #222;padding:10px;border-radius:8px;font-family:monospace;color:#fff;">RPM = Speed × 3.82</p>
+      <img src="tutorial-2.png" alt="Speed/RPM testing setup with density 1.172 on a default R6 avatar" />
+
+      <h3>Step 3 — Plug it into the calculator</h3>
+      <p>Enter each Speed and Torque pair into the table. The tool calculates RPM and Borsepower automatically. Hit <strong>Generate Chart</strong> to see your power curve.</p>
+
+      <button class="primary" onclick="closeTutorial()" style="margin-top:20px;">Got it</button>
+    </div>
+  </div>
+
+  <footer>
+    <div>Discord: <strong>6tel</strong> &nbsp;•&nbsp; YouTube: <a href="https://www.youtube.com/@6tel0" target="_blank">@6tel0</a></div>
+    <div class="made">MADE BY INIMENE</div>
+  </footer>
+
+<script>
+  const tbody = document.querySelector('#dataTable tbody');
+  let chart = null;
+
+  function addRow(speed = '', torque = '') {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="muted idx"></td>
+      <td><input type="number" step="any" class="speed" value="${speed}" placeholder="0"></td>
+      <td><input type="number" step="any" class="torque" value="${torque}" placeholder="0"></td>
+      <td class="readout rpm">0</td>
+      <td class="readout hp">0</td>
+      <td><button class="danger" onclick="this.closest('tr').remove(); recalc();">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+    tr.querySelectorAll('input').forEach(i => i.addEventListener('input', recalc));
+    recalc();
+  }
+
+  function recalc() {
+    [...tbody.children].forEach((tr, i) => {
+      tr.querySelector('.idx').textContent = i + 1;
+      const s = parseFloat(tr.querySelector('.speed').value) || 0;
+      const t = parseFloat(tr.querySelector('.torque').value) || 0;
+      const rpm = s * 3.82;
+      const hp = (rpm * t * 100) / 5252;
+      tr.querySelector('.rpm').textContent = rpm.toFixed(2);
+      tr.querySelector('.hp').textContent = hp.toFixed(2);
+    });
+    if (chart) renderChart();
+  }
+
+  function clearAll() {
+    tbody.innerHTML = '';
+    if (chart) { chart.destroy(); chart = null; }
+    addRow();
+  }
+
+  function renderChart() {
+    const rows = [...tbody.children].map((tr, i) => {
+      const s = parseFloat(tr.querySelector('.speed').value) || 0;
+      const t = parseFloat(tr.querySelector('.torque').value) || 0;
+      const rpm = s * 3.82;
+      const hp = (rpm * t * 100) / 5252;
+      return { idx: i + 1, rpm, hp };
+    }).filter(r => r.rpm > 0 || r.hp > 0);
+
+    const labels = rows.map(r => r.idx);
+    const rpmData = rows.map(r => r.rpm);
+    const hpData  = rows.map(r => r.hp);
+
+    if (chart) chart.destroy();
+    const ctx = document.getElementById('powerChart').getContext('2d');
+
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'RPM',
+            data: rpmData,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59,130,246,0.15)',
+            borderWidth: 2.5,
+            tension: 0.3,
+            fill: false,
+            pointRadius: 3,
+            pointBackgroundColor: '#3b82f6',
+          },
+          {
+            label: 'BORSEPOWER',
+            data: hpData,
+            borderColor: '#ef4444',
+            backgroundColor: 'rgba(239,68,68,0.15)',
+            borderWidth: 2.5,
+            tension: 0.3,
+            fill: false,
+            pointRadius: 3,
+            pointBackgroundColor: '#ef4444',
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { color: '#fff', usePointStyle: true, pointStyle: 'line' }
+          },
+          tooltip: {
+            backgroundColor: '#000',
+            borderColor: '#fff',
+            borderWidth: 1,
+            titleColor: '#fff',
+            bodyColor: '#fff',
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'Data Point', color: '#fff' },
+            ticks: { color: '#aaa' },
+            grid: { color: '#1a1a1a' },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: '#aaa' },
+            grid: { color: '#1a1a1a' },
+          }
+        }
+      }
+    });
+  }
+
+  function openTutorial()  { document.getElementById('tutorialModal').classList.add('open'); }
+  function closeTutorial() { document.getElementById('tutorialModal').classList.remove('open'); }
+
+  addRow(50, 10);
+  addRow(100, 12);
+  addRow(150, 14);
+  addRow(200, 13);
+  renderChart();
+</script>
+</body>
+</html>

@@ -151,7 +151,6 @@
     <div class="header">
       <div>
         <h1>Plane Crazy Engine Power Calculator</h1>
-        <p class="sub">Enter Speed & Torque — RPM and Borsepower auto-calculate.</p>
       </div>
       <button class="primary" onclick="openTutorial()">📖 How to find Torque & RPM</button>
     </div>
@@ -167,7 +166,6 @@
           <tbody></tbody>
         </table>
         <button onclick="addRow()">+ Add Row</button>
-        <button class="primary" onclick="renderChart()">Generate Chart</button>
         <button class="danger" onclick="clearAll()">Clear All</button>
       </div>
 
@@ -192,9 +190,6 @@
       <p>Build this setup to measure Speed. Once you have your Speed value, RPM is automatically calculated using:</p>
       <p style="background:#000;border:1px solid #222;padding:10px;border-radius:8px;font-family:monospace;color:#fff;">RPM = Speed × 3.82</p>
       <img src="tutorial-2.png" alt="Speed/RPM testing setup with density 1.172 on a default R6 avatar" />
-
-      <h3>Step 3 — Plug it into the calculator</h3>
-      <p>Enter each Speed and Torque pair into the table. The tool calculates RPM and Borsepower automatically. Hit <strong>Generate Chart</strong> to see your power curve.</p>
 
       <button class="primary" onclick="closeTutorial()" style="margin-top:20px;">Got it</button>
     </div>
@@ -265,26 +260,15 @@
         labels,
         datasets: [
           {
-            label: 'RPM',
-            data: rpmData,
+            label: 'BORSEPOWER',
+            data: hpData,
             borderColor: '#3b82f6',
             backgroundColor: 'rgba(59,130,246,0.15)',
             borderWidth: 2.5,
             tension: 0.3,
-            fill: false,
+            fill: true,
             pointRadius: 3,
             pointBackgroundColor: '#3b82f6',
-          },
-          {
-            label: 'BORSEPOWER',
-            data: hpData,
-            borderColor: '#ef4444',
-            backgroundColor: 'rgba(239,68,68,0.15)',
-            borderWidth: 2.5,
-            tension: 0.3,
-            fill: false,
-            pointRadius: 3,
-            pointBackgroundColor: '#ef4444',
           }
         ]
       },
@@ -307,7 +291,6 @@
         },
         scales: {
           x: {
-            title: { display: true, text: 'Data Point', color: '#fff' },
             ticks: { color: '#aaa' },
             grid: { color: '#1a1a1a' },
           },

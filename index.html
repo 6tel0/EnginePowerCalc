@@ -124,9 +124,25 @@
     border-bottom: 1px solid #222; padding-bottom: 6px;
   }
   .modal p { color: #bbb; line-height: 1.6; margin-bottom: 10px; }
-  .modal img {
+  .modal img, .video-wrap iframe {
     width: 100%; height: auto; border-radius: 10px;
     margin: 12px 0; border: 1px solid #222;
+  }
+  .video-wrap {
+    position: relative;
+    padding-bottom: 177.78%;
+    height: 0;
+    overflow: hidden;
+    border-radius: 10px;
+    margin: 12px 0;
+  }
+  .video-wrap iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    border: none;
+    border-radius: 10px;
+    margin: 0;
   }
   .close-x {
     float: right; cursor: pointer; color: #888;
@@ -181,7 +197,11 @@
       <span class="close-x" onclick="closeTutorial()">✕</span>
       <img src="tutorial-1.png" alt="Torque testing setup, spawning procedure, flowchart, and notes" />
       <img src="tutorial-2.png" alt="Speed/RPM testing setup with density 1.172 on a default R6 avatar" />
-      <p style="color:#666;font-size:0.75rem;text-align:center;margin-top:12px;">Images by Sup</p>
+      <p style="color:#bbb;margin:18px 0 8px;font-weight:600;">Video by Doirly</p>
+      <div class="video-wrap">
+        <iframe src="https://www.youtube.com/embed/8gzfFBZnOJo" title="Video by Doirly" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+      <p style="color:#666;font-size:0.75rem;text-align:center;margin-top:12px;">Images by Doirly</p>
       <button class="primary" onclick="closeTutorial()" style="margin-top:20px;">Got it</button>
     </div>
   </div>

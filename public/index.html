@@ -166,7 +166,6 @@
           <tbody></tbody>
         </table>
         <button onclick="addRow()">+ Add Row</button>
-        <button class="primary" onclick="renderChart()">Generate Chart</button>
         <button class="danger" onclick="clearAll()">Clear All</button>
       </div>
 
@@ -228,6 +227,7 @@
     tbody.innerHTML = '';
     if (chart) { chart.destroy(); chart = null; }
     addRow();
+    renderChart();
   }
 
   function renderChart() {
@@ -252,26 +252,15 @@
         labels,
         datasets: [
           {
-            label: 'RPM',
-            data: rpmData,
+            label: 'BORSEPOWER',
+            data: hpData,
             borderColor: '#3b82f6',
             backgroundColor: 'rgba(59,130,246,0.15)',
             borderWidth: 2.5,
             tension: 0.3,
-            fill: false,
+            fill: true,
             pointRadius: 3,
             pointBackgroundColor: '#3b82f6',
-          },
-          {
-            label: 'BORSEPOWER',
-            data: hpData,
-            borderColor: '#ef4444',
-            backgroundColor: 'rgba(239,68,68,0.15)',
-            borderWidth: 2.5,
-            tension: 0.3,
-            fill: false,
-            pointRadius: 3,
-            pointBackgroundColor: '#ef4444',
           }
         ]
       },
@@ -294,7 +283,6 @@
         },
         scales: {
           x: {
-            title: { display: true, text: 'Data Point', color: '#fff' },
             ticks: { color: '#aaa' },
             grid: { color: '#1a1a1a' },
           },
